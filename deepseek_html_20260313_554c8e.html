@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>YAO-旅行计划 | 五城深度攻略</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        /* 完整样式，与之前保持一致 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0e9e2;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .phone-frame {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 30px 30px 20px 20px;
+            box-shadow: 0 25px 40px -10px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 1px solid #e0c8b5;
+        }
+        .header {
+            background: linear-gradient(130deg, #b8432c, #a13b2a);
+            padding: 1.2rem 1.2rem 0.8rem;
+            color: white;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+        }
+        .city-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .city-tab {
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: 0.2s;
+        }
+        .city-tab.active {
+            background: white;
+            color: #b8432c;
+        }
+        .live-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem 1.5rem;
+            background: rgba(0,0,0,0.15);
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.95rem;
+            margin-top: 0.8rem;
+        }
+        .weekly-scroll {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            overflow-x: auto;
+            padding-bottom: 0.3rem;
+        }
+        .weather-item {
+            min-width: 65px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 30px;
+            padding: 0.3rem 0;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        .sensation-bar {
+            background: #c1d5d0;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .qr-toolbar {
+            background: #fff4ea;
+            padding: 0.5rem 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #qrCanvas {
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .avoid-box {
+            background: #ffefec;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            border-left: 4px solid #d44c3a;
+            margin: 0.8rem;
+            border-radius: 16px;
+        }
+        .plan-tabs {
+            display: flex;
+            background: #f2e6dd;
+            border-bottom: 2px solid #dbbd9c;
+        }
+        .plan-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.8rem 0;
+            font-weight: 700;
+            font-size: 1rem;
+            background: #f2e6dd;
+            color: #633f2b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .plan-tab.active {
+            background: white;
+            color: #b8432c;
+            border-bottom: 3px solid #b8432c;
+        }
+        .version-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.8rem 1.2rem 0.5rem;
+        }
+        .version-btn {
+            flex: 1;
+            background: #efe1d6;
+            border: none;
+            padding: 0.6rem 0;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .version-btn.active {
+            background: #b8432c;
+            color: white;
+        }
+        .effort-meter {
+            background: #f0eae2;
+            margin: 0.3rem 1.2rem 0.8rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+        .schedule-container {
+            padding: 0.3rem 1rem 1.5rem;
+        }
+        .day-block {
+            background: #fcf8f4;
+            border-radius: 24px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .day-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #a13b2a;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .spot-item {
+            border-bottom: 1px dashed #edd9ca;
+            padding: 1rem 0;
+        }
+        .spot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.3rem;
+        }
+        .spot-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+        .spot-time {
+            font-weight: 600;
+            color: #b35d3a;
+            font-size: 0.9rem;
+            background: #f0e2d4;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+        }
+        .spot-duration {
+            display: inline-block;
+            background: #e9e0d9;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            color: #4d3628;
+        }
+        .spot-desc {
+            color: #5f4b3b;
+            font-size: 0.85rem;
+            margin: 0.3rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .spot-tips {
+            background: #f0f5f0;
+            border-radius: 16px;
+            padding: 0.4rem 0.8rem;
+            margin: 0.5rem 0;
+            font-size: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .play-tips {
+            background: #fef6e8;
+            border-radius: 16px;
+            padding: 0.4rem 0.8rem;
+            margin: 0.5rem 0;
+            font-size: 0.8rem;
+            color: #7b5a42;
+            border-left: 3px solid #b8432c;
+        }
+        .play-tips i {
+            color: #b8432c;
+            margin-right: 0.3rem;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 0.4rem;
+            margin: 0.3rem 0;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: #e9f0f5;
+            border-radius: 20px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.75rem;
+            color: #1e5f7a;
+            text-decoration: none;
+            border: 1px solid #9bc6d7;
+        }
+        .food-row {
+            display: flex;
+            gap: 0.5rem;
+            margin: 0.8rem 0;
+            overflow-x: auto;
+            padding: 0.2rem 0;
+        }
+        .food-card {
+            min-width: 140px;
+            background: white;
+            border-radius: 20px;
+            padding: 0.6rem;
+            border: 1px solid #e0cfc0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .food-card .name {
+            font-weight: 700;
+            color: #a13b2a;
+        }
+        .food-card .spice {
+            display: inline-block;
+            background: #ffd9c9;
+            padding: 0.1rem 0.4rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+        .food-card .price {
+            font-size: 0.8rem;
+            color: #2d4a2d;
+            font-weight: 600;
+        }
+        .food-card .rec {
+            font-size: 0.7rem;
+            color: #6f5a48;
+            margin-top: 0.2rem;
+        }
+        .detail-toggle {
+            background: none;
+            border: 1px solid #b8432c;
+            color: #b8432c;
+            border-radius: 20px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-top: 0.3rem;
+        }
+        .spot-detail {
+            background: #f3efe9;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .spot-detail.show {
+            display: block;
+        }
+        .detail-section {
+            margin-bottom: 1rem;
+        }
+        .detail-section h4 {
+            font-size: 0.95rem;
+            color: #a13b2a;
+            margin-bottom: 0.3rem;
+            border-bottom: 1px solid #d4b8a0;
+            padding-bottom: 0.2rem;
+        }
+        .hotel-item {
+            background: white;
+            border-radius: 16px;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            font-size: 0.8rem;
+        }
+        .review-item {
+            font-size: 0.8rem;
+            margin: 0.3rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.3rem;
+        }
+        .review-item i {
+            color: #f5b342;
+            font-size: 0.7rem;
+            min-width: 14px;
+        }
+        .food-detail-item {
+            background: white;
+            border-radius: 16px;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            font-size: 0.8rem;
+        }
+        .food-detail-item .food-name {
+            font-weight: 700;
+            color: #a13b2a;
+        }
+        .food-detail-item .food-spice {
+            display: inline-block;
+            background: #ffd9c9;
+            padding: 0.1rem 0.4rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+        .day-total {
+            background: #f0e2d4;
+            border-radius: 30px;
+            padding: 0.3rem 1rem;
+            margin-top: 1rem;
+            text-align: right;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #a13b2a;
+            display: inline-block;
+            float: right;
+        }
+        .finance-summary {
+            background: #e5ded5;
+            border-radius: 30px;
+            padding: 0.8rem 1.2rem;
+            margin: 1rem 0 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            clear: both;
+            font-size: 0.9rem;
+        }
+        .total-badge {
+            background: #b8432c;
+            color: white;
+            border-radius: 30px;
+            padding: 0.3rem 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .footer-note {
+            text-align: center;
+            padding: 0.8rem 1rem;
+            font-size: 0.8rem;
+            color: #6f5a48;
+            border-top: 1px solid #eddac8;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>YAO-旅行计划</h1>
+            <div class="city-tabs" id="cityTabs">
+                <div class="city-tab active" data-city="chongqing">🌶️ 重庆</div>
+                <div class="city-tab" data-city="chengdu">🐼 成都</div>
+                <div class="city-tab" data-city="xiamen">🏝️ 厦门</div>
+                <div class="city-tab" data-city="wenzhou">⛰️ 温州</div>
+                <div class="city-tab" data-city="nanchong">🏯 南充</div>
+            </div>
+            <!-- 实时天气 -->
+            <div class="live-info">
+                <div><i class="far fa-clock"></i> <span id="liveTime">--:--:--</span></div>
+                <div><i class="fas fa-cloud-sun"></i> <span id="weatherDesc">加载天气中...</span></div>
+                <div><i class="fas fa-tint"></i> <span id="humidity">--%</span></div>
+            </div>
+            <div class="weekly-scroll" id="weeklyForecast"></div>
+        </div>
+
+        <!-- 体感 -->
+        <div class="sensation-bar" id="sensationBar">
+            <i class="fas fa-temperature-high"></i> <span id="sensationText">加载体感...</span>
+        </div>
+
+        <!-- 二维码 -->
+        <div class="qr-toolbar">
+            <span><i class="fas fa-qrcode"></i> 朋友扫码看YAO旅行计划</span>
+            <div id="qrCanvas"></div>
+        </div>
+
+        <!-- 避坑提示 -->
+        <div class="avoid-box" id="avoidBox">
+            <i class="fas fa-exclamation-triangle"></i> <span id="avoidText">加载避坑指南...</span>
+        </div>
+
+        <!-- 方案切换 -->
+        <div class="plan-tabs">
+            <div class="plan-tab active" data-plan="1">一日游</div>
+            <div class="plan-tab" data-plan="2">两日游</div>
+            <div class="plan-tab" data-plan="3">三日游</div>
+        </div>
+        <div class="version-tabs">
+            <button class="version-btn active" data-version="leisure">🌸 游玩版</button>
+            <button class="version-btn" data-version="hardcore">⚡ 特种兵版</button>
+        </div>
+        <div class="effort-meter" id="effortMeter">
+            <span><i class="fas fa-shoe-prints"></i> <span id="stepEst">0步</span></span>
+            <span><i class="fas fa-building"></i> <span id="floorEst">0层</span></span>
+            <span><i class="fas fa-clock"></i> <span id="totalTime">0小时</span></span>
+        </div>
+
+        <!-- 行程容器 -->
+        <div class="schedule-container" id="scheduleContainer"></div>
+
+        <div class="footer-note">
+            ⭐ 游玩版每天覆盖上午/下午/晚上 · 每日花费透明 · 周边5家¥100-300酒店
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 实时天气API ----------
+            async function fetchRealWeather(city) {
+                const cityMap = {
+                    'chongqing': '101040100',
+                    'chengdu': '101270101',
+                    'xiamen': '101230201',
+                    'wenzhou': '101210701',
+                    'nanchong': '101270502'
+                };
+                const cityId = cityMap[city] || '101040100';
+                const apiKey = '7b7e9a2af429496f885132451241303'; // 和风天气测试key
+                
+                try {
+                    const nowRes = await fetch(`https://devapi.qweather.com/v7/weather/now?location=${cityId}&key=${apiKey}`);
+                    const nowData = await nowRes.json();
+                    const dailyRes = await fetch(`https://devapi.qweather.com/v7/weather/7d?location=${cityId}&key=${apiKey}`);
+                    const dailyData = await dailyRes.json();
+                    
+                    if (nowData.code === '200' && dailyData.code === '200') {
+                        return { now: nowData.now, daily: dailyData.daily };
+                    }
+                } catch (e) {
+                    console.warn('天气API调用失败，使用模拟数据');
+                }
+                
+                // 模拟7天数据
+                const mockData = {
+                    'chongqing': { now: { temp: '18', text: '小雨', humidity: '85' }, daily: [
+                        { fxDate: '03-14', tempMax: '20', tempMin: '15', textDay: '小雨' },
+                        { fxDate: '03-15', tempMax: '22', tempMin: '16', textDay: '阴' },
+                        { fxDate: '03-16', tempMax: '19', tempMin: '14', textDay: '中雨' },
+                        { fxDate: '03-17', tempMax: '17', tempMin: '12', textDay: '小雨' },
+                        { fxDate: '03-18', tempMax: '21', tempMin: '15', textDay: '多云' },
+                        { fxDate: '03-19', tempMax: '23', tempMin: '16', textDay: '晴' },
+                        { fxDate: '03-20', tempMax: '24', tempMin: '17', textDay: '多云' }
+                    ]},
+                    'chengdu': { now: { temp: '16', text: '阴', humidity: '75' }, daily: [
+                        { fxDate: '03-14', tempMax: '19', tempMin: '12', textDay: '阴' },
+                        { fxDate: '03-15', tempMax: '21', tempMin: '13', textDay: '多云' },
+                        { fxDate: '03-16', tempMax: '20', tempMin: '12', textDay: '小雨' },
+                        { fxDate: '03-17', tempMax: '18', tempMin: '11', textDay: '阴' },
+                        { fxDate: '03-18', tempMax: '22', tempMin: '14', textDay: '晴' },
+                        { fxDate: '03-19', tempMax: '24', tempMin: '15', textDay: '多云' },
+                        { fxDate: '03-20', tempMax: '23', tempMin: '14', textDay: '阴' }
+                    ]},
+                    'xiamen': { now: { temp: '22', text: '多云', humidity: '78' }, daily: [
+                        { fxDate: '03-14', tempMax: '24', tempMin: '18', textDay: '多云' },
+                        { fxDate: '03-15', tempMax: '25', tempMin: '19', textDay: '晴' },
+                        { fxDate: '03-16', tempMax: '23', tempMin: '18', textDay: '阵雨' },
+                        { fxDate: '03-17', tempMax: '22', tempMin: '17', textDay: '小雨' },
+                        { fxDate: '03-18', tempMax: '24', tempMin: '18', textDay: '多云' },
+                        { fxDate: '03-19', tempMax: '26', tempMin: '20', textDay: '晴' },
+                        { fxDate: '03-20', tempMax: '25', tempMin: '19', textDay: '多云' }
+                    ]},
+                    'wenzhou': { now: { temp: '17', text: '阴', humidity: '82' }, daily: [
+                        { fxDate: '03-14', tempMax: '19', tempMin: '13', textDay: '阴' },
+                        { fxDate: '03-15', tempMax: '21', tempMin: '14', textDay: '多云' },
+                        { fxDate: '03-16', tempMax: '18', tempMin: '12', textDay: '小雨' },
+                        { fxDate: '03-17', tempMax: '16', tempMin: '11', textDay: '小雨' },
+                        { fxDate: '03-18', tempMax: '17', tempMin: '12', textDay: '阴' },
+                        { fxDate: '03-19', tempMax: '20', tempMin: '13', textDay: '多云' },
+                        { fxDate: '03-20', tempMax: '22', tempMin: '15', textDay: '晴' }
+                    ]},
+                    'nanchong': { now: { temp: '15', text: '阴', humidity: '76' }, daily: [
+                        { fxDate: '03-14', tempMax: '17', tempMin: '11', textDay: '阴' },
+                        { fxDate: '03-15', tempMax: '19', tempMin: '12', textDay: '多云' },
+                        { fxDate: '03-16', tempMax: '16', tempMin: '10', textDay: '小雨' },
+                        { fxDate: '03-17', tempMax: '15', tempMin: '9', textDay: '小雨' },
+                        { fxDate: '03-18', tempMax: '16', tempMin: '10', textDay: '阴' },
+                        { fxDate: '03-19', tempMax: '18', tempMin: '11', textDay: '多云' },
+                        { fxDate: '03-20', tempMax: '20', tempMin: '12', textDay: '晴' }
+                    ]}
+                };
+                return mockData[city] || mockData.chongqing;
+            }
+
+            // ---------- 景点数据（五城）----------
+            const citySpots = {
+                // 重庆 (完整)
+                chongqing: {
+                    '解放碑': { 
+                        duration: { leisure: '1.5h', hardcore: '0.8h' },
+                        water: '周边便利店多，随时可买水',
+                        specialty: '火锅底料、陈麻花',
+                        playTips: [
+                            '最佳拍照点在碑前广场，晚上灯光更美',
+                            '八一好吃街就在旁边，可顺路品尝小吃',
+                            '轻轨1/2号线直达，建议公共交通'
+                        ],
+                        hotels: [
+                            { name: '解放碑公寓', distance: '200m', price: '¥180', rating: 4.2 },
+                            { name: '较场口青年旅舍', distance: '300m', price: '¥120', rating: 4.0 },
+                            { name: '洪崖洞快捷酒店', distance: '400m', price: '¥220', rating: 4.1 },
+                            { name: '朝天门宾馆', distance: '500m', price: '¥260', rating: 4.3 },
+                            { name: '临江门民宿', distance: '600m', price: '¥190', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '地标建筑，夜景很震撼，周围商圈繁华',
+                                '交通枢纽，轻轨1/2号线直达',
+                                '周边小吃超级多，八一好吃街就在旁边',
+                                '历史感与现代交融，适合拍照打卡',
+                                '解放碑跨年很有氛围'
+                            ],
+                            bad: [
+                                '人太多了，拍照要排队',
+                                '商业化严重，都是商场',
+                                '地面有点脏，垃圾桶少',
+                                '拉客的很多，不要理',
+                                '冬天风大，吹得头疼'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '花市豌杂面', spice: '微辣', price: '¥18', good: ['豌杂软烂', '面条劲道', '本地人最爱'], bad: ['环境一般', '饭点排队', '份量略少'] },
+                            { name: '好又来酸辣粉', spice: '中辣', price: '¥12', good: ['酸辣过瘾', '价格便宜', '配料足'], bad: ['只有路边摊', '没有座位', '太油'] },
+                            { name: '老城门洞火锅', spice: '特辣', price: '¥90', good: ['九宫格地道', '冰粉免费', '毛肚新鲜'], bad: ['环境嘈杂', '服务一般', '锅底偏咸'] }
+                        ]
+                    },
+                    '洪崖洞': { 
+                        duration: { leisure: '2.5h', hardcore: '1.2h' },
+                        water: '景区内有饮料店，建议自备水',
+                        specialty: '手工糍粑、火锅底料',
+                        playTips: [
+                            '亮灯时间为19:30-22:00，提前去占机位',
+                            '千厮门大桥上拍全景最佳，但人很多',
+                            '景区免费但需预约，公众号提前操作'
+                        ],
+                        hotels: [
+                            { name: '洪崖洞客栈', distance: '100m', price: '¥250', rating: 4.3 },
+                            { name: '沧白路宾馆', distance: '200m', price: '¥180', rating: 4.0 },
+                            { name: '小什字民宿', distance: '300m', price: '¥160', rating: 4.1 },
+                            { name: '罗汉寺客栈', distance: '400m', price: '¥200', rating: 4.2 },
+                            { name: '临江路酒店', distance: '500m', price: '¥220', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '夜景像千与千寻，太震撼了',
+                                '千厮门大桥上拍全景绝佳',
+                                '免费入园，良心景点',
+                                '里面小吃种类多',
+                                '11楼和1楼出去都是马路，很有山城特色'
+                            ],
+                            bad: [
+                                '人山人海，周末根本挤不动',
+                                '电梯排队半小时起',
+                                '里面物价偏高，一瓶水8块',
+                                '没有快速通道，别信黄牛',
+                                '地面湿滑，下雨天要小心'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '捞锅坝子', spice: '中辣', price: '¥100', good: ['菜品新鲜', '服务好', '有表演'], bad: ['价格略高', '排队久', '分量一般'] },
+                            { name: '佬麻抄手', spice: '麻', price: '¥20', good: ['麻味正宗', '肉馅足', '24小时'], bad: ['环境简陋', '只有抄手', '有点咸'] },
+                            { name: '烤脑花', spice: '辣', price: '¥15', good: ['嫩滑', '调料香', '路边摊特色'], bad: ['可能不卫生', '排队久', '一份不够'] }
+                        ]
+                    },
+                    '长江索道': { 
+                        duration: { leisure: '1.5h', hardcore: '0.8h' },
+                        water: '排队处有自动售货机',
+                        specialty: '无特产，可买文创冰箱贴',
+                        playTips: [
+                            '提前在公众号预约购票，避免现场排队',
+                            '北站（新华路）人比南站多，可反向乘坐',
+                            '单程体验即可，往返意义不大'
+                        ],
+                        hotels: [
+                            { name: '索道宾馆', distance: '50m', price: '¥280', rating: 4.0 },
+                            { name: '新华路酒店', distance: '200m', price: '¥200', rating: 4.1 },
+                            { name: '上新街客栈', distance: '300m', price: '¥150', rating: 4.0 },
+                            { name: '龙门浩民宿', distance: '400m', price: '¥230', rating: 4.3 },
+                            { name: '东水门驿站', distance: '500m', price: '¥170', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '空中看山城，视角独特',
+                                '单程体验刚好，往返没必要',
+                                '车厢怀旧感十足',
+                                '傍晚坐看落日很美',
+                                '北站上新街站都方便'
+                            ],
+                            bad: [
+                                '排队2小时乘坐5分钟',
+                                '车厢挤成肉饼',
+                                '票价从20涨到30了',
+                                '南站出来不好打车',
+                                '冬天风大很冷'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '小北味老麻抄手', spice: '麻', price: '¥18', good: ['抄手大个', '麻味足', '24小时'], bad: ['环境一般', '只收现金', '服务差'] },
+                            { name: '莉姐火锅', spice: '中辣', price: '¥90', good: ['复古怀旧风', '锅底浓郁', '辣度适中'], bad: ['位置偏', '排队久', '菜品普通'] },
+                            { name: '路边凉虾', spice: '甜', price: '¥5', good: ['解辣神器', '便宜', '清爽'], bad: ['卫生存疑', '量少', '偶尔没有'] }
+                        ]
+                    },
+                    '磁器口': { 
+                        duration: { leisure: '2.5h', hardcore: '1.3h' },
+                        water: '古镇内饮料店多',
+                        specialty: '陈麻花、毛血旺调料包',
+                        playTips: [
+                            '主街人多，后街更清净适合拍照',
+                            '陈麻花可以试吃，多比价再买',
+                            '磁器口码头可看江景，但需步行'
+                        ],
+                        hotels: [
+                            { name: '磁器口古镇客栈', distance: '100m', price: '¥300', rating: 4.2 },
+                            { name: '童家桥酒店', distance: '200m', price: '¥220', rating: 4.0 },
+                            { name: '石井坡民宿', distance: '300m', price: '¥180', rating: 4.1 },
+                            { name: '双碑宾馆', distance: '400m', price: '¥160', rating: 4.0 },
+                            { name: '磁童路客栈', distance: '500m', price: '¥200', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '古镇气息浓厚，石板路有味道',
+                                '陈麻花好吃，可以试吃',
+                                '后街清净，适合拍照',
+                                '茶馆多，可以歇脚',
+                                '码头看江景不错'
+                            ],
+                            bad: [
+                                '主街商业化太严重',
+                                '人挤人，周末没法走',
+                                '东西偏贵，一份酸辣粉25',
+                                '同质化严重，每家店都差不多',
+                                '石板路不平，容易崴脚'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '陈麻花', spice: '不辣', price: '¥15/袋', good: ['麻花酥脆', '口味多', '可以试吃'], bad: ['排队超长', '容易碎', '真假店分不清'] },
+                            { name: '回头望冰粉凉虾', spice: '甜', price: '¥4', good: ['30年老店', '醪糟味独特', '便宜实惠'], bad: ['店面太小容易错过', '只收现金', '老板脾气倔'] },
+                            { name: '马房湾66号江湖菜', spice: '中辣', price: '¥70', good: ['辣子鸡是招牌', '冰粉便宜好吃', '套餐划算'], bad: ['下午两点还排队', '味道不算惊艳', '麻花不够脆'] }
+                        ]
+                    },
+                    '山城步道': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '建议自备水，沿途小店少',
+                        specialty: '无特产，体验山城巷',
+                        playTips: [
+                            '从领事巷往下走，全程下坡省力',
+                            '红灯笼夜景很美，建议傍晚来',
+                            '故事屋免费讲解，可以听历史'
+                        ],
+                        hotels: [
+                            { name: '七星岗宾馆', distance: '300m', price: '¥240', rating: 4.1 },
+                            { name: '领事巷民宿', distance: '400m', price: '¥180', rating: 4.0 },
+                            { name: '石板坡客栈', distance: '500m', price: '¥150', rating: 4.0 },
+                            { name: '枇杷山酒店', distance: '600m', price: '¥220', rating: 4.2 },
+                            { name: '兴隆街旅馆', distance: '700m', price: '¥130', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '山城巷保留了原始建筑风采，也有新潮咖啡馆',
+                                '从领事巷往下走全程下坡，对体力不好的人很友好',
+                                '悬崖栈道上的红灯笼夜景绝美',
+                                '坝坝茶可以看川剧变脸',
+                                '故事屋免费介绍山城巷历史'
+                            ],
+                            bad: [
+                                '周末人超级多，拍照要排队',
+                                '主街商业化明显，东西偏贵',
+                                '爬坡上坎确实累，建议穿运动鞋',
+                                '部分小店关门早，晚上可逛的不多',
+                                '指示牌不够清晰，容易走错路'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '饭粑跎老重庆蹄花', spice: '微辣', price: '¥45', good: ['蹄花软烂', '非遗地标菜', '复古环境'], bad: ['排队久', '分量偏小', '价格小贵'] },
+                            { name: '过道豆花', spice: '微辣', price: '¥20', good: ['豆花嫩滑', '调料自选', '性价比高'], bad: ['环境简陋', '位置难找', '服务一般'] },
+                            { name: '渝味道冰汤圆', spice: '甜', price: '¥10', good: ['冰汤圆Q弹', '明星打卡过', '解辣神器'], bad: ['路边摊环境', '排队久', '量少'] }
+                        ]
+                    },
+                    '南滨路': { 
+                        duration: { leisure: '1.5h', hardcore: '0.8h' },
+                        water: '沿路有便利店',
+                        specialty: '无',
+                        playTips: [
+                            '看渝中半岛夜景的最佳位置',
+                            '冬天江风大，注意保暖',
+                            '有江景餐厅，适合约会'
+                        ],
+                        hotels: [
+                            { name: '南滨路青年旅舍', distance: '200m', price: '¥140', rating: 4.0 },
+                            { name: '海棠溪酒店', distance: '300m', price: '¥260', rating: 4.3 },
+                            { name: '龙门浩客栈', distance: '400m', price: '¥200', rating: 4.2 },
+                            { name: '上新街宾馆', distance: '500m', price: '¥180', rating: 4.0 },
+                            { name: '弹子石民宿', distance: '600m', price: '¥150', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '看对岸渝中夜景绝佳',
+                                '江风徐徐很舒服',
+                                '适合散步约会',
+                                '有江景餐厅',
+                                '拍照出片'
+                            ],
+                            bad: [
+                                '冬天江风太冷',
+                                '晚上车多',
+                                '可以逛的地方不多',
+                                '餐饮偏贵',
+                                '夏天蚊子多'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '福满家老字号江景火锅', spice: '中辣', price: '¥120', good: ['牛油锅底香', '可点鸳鸯锅', '江景view'], bad: ['价格偏贵', '分量少', '服务一般'] },
+                            { name: '南滨路夜市', spice: '多种', price: '¥60', good: ['选择多', '接地气', '热闹'], bad: ['卫生堪忧', '人挤人', '宰客'] },
+                            { name: '江边烤鱼', spice: '辣', price: '¥70', good: ['外焦里嫩', '配菜多', '江景'], bad: ['鱼不新鲜', '刺多', '油大'] }
+                        ]
+                    },
+                    '李子坝': { 
+                        duration: { leisure: '0.8h', hardcore: '0.5h' },
+                        water: '观景台有售货机',
+                        specialty: '无',
+                        playTips: [
+                            '观景台人很多，可去旁边新都巷步道',
+                            '轻轨每几分钟一班，耐心等待抓拍',
+                            '楼下防空洞有茶馆，可以休息'
+                        ],
+                        hotels: [
+                            { name: '李子坝宾馆', distance: '200m', price: '¥180', rating: 4.0 },
+                            { name: '化龙桥酒店', distance: '300m', price: '¥220', rating: 4.1 },
+                            { name: '佛图关民宿', distance: '500m', price: '¥160', rating: 4.0 },
+                            { name: '鹅岭客栈', distance: '700m', price: '¥190', rating: 4.0 },
+                            { name: '大坪青年旅舍', distance: '1km', price: '¥130', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '轻轨穿楼奇观，必打卡',
+                                '观景台免费',
+                                '楼下防空洞有特色',
+                                '顺路就能看',
+                                '拍视频很震撼'
+                            ],
+                            bad: [
+                                '只有这一个看点',
+                                '观景台人挤人',
+                                '拍照角度固定',
+                                '停留10分钟就够',
+                                '周边没什么配套'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '程大嘴美蛙', spice: '特辣', price: '¥80', good: ['蛙腿嫩滑', '香辣入味', '服务会询问口味偏好'], bad: ['只做晚餐', '必须预约', '位置迁到沙滨路了'] },
+                            { name: '李子坝梁山鸡', spice: '中辣', price: '¥90', good: ['鸡肉嫩', '芋儿耙', '药膳味'], bad: ['价格贵', '分量少', '排队久'] },
+                            { name: '洞亭火锅', spice: '中辣', price: '¥100', good: ['防空洞里吃火锅', '1989年老店', '食材新鲜'], bad: ['空气流通差', '地面油滑', '菜品普通'] }
+                        ]
+                    },
+                    '十八梯': { 
+                        duration: { leisure: '1.5h', hardcore: '0.8h' },
+                        water: '街边小店',
+                        specialty: '无',
+                        playTips: [
+                            '电影《从你的全世界路过》取景地',
+                            '夜景灯光不错，但部分区域在修缮',
+                            '台阶多，穿舒适鞋子'
+                        ],
+                        hotels: [
+                            { name: '较场口宾馆', distance: '200m', price: '¥200', rating: 4.1 },
+                            { name: '日月光民宿', distance: '300m', price: '¥240', rating: 4.2 },
+                            { name: '中兴路客栈', distance: '400m', price: '¥160', rating: 4.0 },
+                            { name: '石板坡酒店', distance: '500m', price: '¥180', rating: 4.0 },
+                            { name: '山城巷旅舍', distance: '600m', price: '¥140', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '老重庆风貌，电影取景地',
+                                '台阶很有味道',
+                                '夜景灯光不错',
+                                '人比洪崖洞少',
+                                '附近有老火锅'
+                            ],
+                            bad: [
+                                '还在修缮中，有些地方围挡',
+                                '商业化刚开始，店铺不多',
+                                '台阶太多，累人',
+                                '指示不清',
+                                '夏天暴晒'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '十八梯眼镜面', spice: '中辣', price: '¥25', good: ['牛肉面', '原汤浓郁', '肉大块'], bad: ['环境一般', '价格偏高', '份量少'] },
+                            { name: '山城巷老火锅', spice: '特辣', price: '¥80', good: ['巷子里的老火锅', '牛油香', '便宜'], bad: ['环境简陋', '卫生一般', '服务差'] },
+                            { name: '梯坎豆花', spice: '微辣', price: '¥15', good: ['豆花饭', '家常味', '便宜'], bad: ['只有豆花', '环境差', '上菜慢'] }
+                        ]
+                    },
+                    '湖广会馆': { 
+                        duration: { leisure: '1.5h', hardcore: '1.0h' },
+                        water: '门口有卖水',
+                        specialty: '川剧变脸周边',
+                        playTips: [
+                            '下午有川剧表演，可提前购票',
+                            '黄色外墙拍照很出片',
+                            '可和东水门老街一起逛'
+                        ],
+                        hotels: [
+                            { name: '东水门驿站', distance: '200m', price: '¥150', rating: 4.0 },
+                            { name: '朝天门宾馆', distance: '400m', price: '¥260', rating: 4.3 },
+                            { name: '白象街民宿', distance: '500m', price: '¥200', rating: 4.1 },
+                            { name: '解放碑青年旅舍', distance: '600m', price: '¥120', rating: 4.0 },
+                            { name: '长滨路酒店', distance: '700m', price: '¥180', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '古建筑精美，了解移民文化',
+                                '有川剧表演',
+                                '人少清净',
+                                '拍照好看',
+                                '讲解员专业'
+                            ],
+                            bad: [
+                                '门票偏贵',
+                                '可看的不多',
+                                '表演时间短',
+                                '交通不便',
+                                '周边吃饭地方少'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '湖广会馆火锅', spice: '中辣', price: '¥100', good: ['环境古色古香', '毛肚脆', '服务好'], bad: ['价格贵', '分量少', '排队久'] },
+                            { name: '东水门老街小面', spice: '辣', price: '¥12', good: ['面条劲道', '便宜', '24小时'], bad: ['环境一般', '座位少', '味道一般'] },
+                            { name: '长滨路烧烤', spice: '辣', price: '¥60', good: ['江边烧烤', '种类多', '晚上热闹'], bad: ['油烟大', '卫生一般', '上菜慢'] }
+                        ]
+                    },
+                    '鹅岭二厂': { 
+                        duration: { leisure: '2.0h', hardcore: '1.2h' },
+                        water: '园区内有咖啡馆',
+                        specialty: '文创产品',
+                        playTips: [
+                            '电影取景地，天台必去',
+                            '有很多文艺小店，适合拍照',
+                            '可以俯瞰渝中半岛'
+                        ],
+                        hotels: [
+                            { name: '鹅岭酒店', distance: '300m', price: '¥220', rating: 4.1 },
+                            { name: '佛图关民宿', distance: '500m', price: '¥160', rating: 4.0 },
+                            { name: '大坪宾馆', distance: '800m', price: '¥180', rating: 4.0 },
+                            { name: '二厂文创公寓', distance: '100m', price: '¥280', rating: 4.3 },
+                            { name: '浮图关青年旅舍', distance: '600m', price: '¥130', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '文艺青年必去',
+                                '电影取景地',
+                                '天台风景好',
+                                '展览多',
+                                '适合拍照'
+                            ],
+                            bad: [
+                                '位置偏高，爬坡累',
+                                '可玩性一般',
+                                '餐饮选择少',
+                                '夏天暴晒',
+                                '晚上冷清'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '大王油茶', spice: '微辣', price: '¥25', good: ['传统小吃', '配料丰富', '环境文艺'], bad: ['价格偏高', '分量少', '油条不脆'] },
+                            { name: '懒鱼时光馆', spice: '甜', price: '¥40', good: ['咖啡好喝', '甜品精致', '拍照好看'], bad: ['人多', '价格贵', '座位少'] },
+                            { name: '二厂小面', spice: '辣', price: '¥15', good: ['面条劲道', '豌杂香', '便宜'], bad: ['环境一般', '只有小面', '服务慢'] }
+                        ]
+                    }
+                },
+                // 成都 (补充完整)
+                chengdu: {
+                    '大熊猫基地': { 
+                        duration: { leisure: '3.5h', hardcore: '2.5h' },
+                        water: '园区内有自动售货机',
+                        specialty: '熊猫玩偶',
+                        playTips: [
+                            '一定要早上去，7:30开门直奔月亮产房',
+                            '中午熊猫睡觉，什么都看不到',
+                            '建议坐游览车，园区很大'
+                        ],
+                        hotels: [
+                            { name: '熊猫驿站', distance: '300m', price: '¥260', rating: 4.3 },
+                            { name: '白莲池宾馆', distance: '500m', price: '¥180', rating: 4.0 },
+                            { name: '青龙场酒店', distance: '800m', price: '¥200', rating: 4.1 },
+                            { name: '昭觉寺客栈', distance: '1km', price: '¥150', rating: 4.0 },
+                            { name: '动物园民宿', distance: '1.2km', price: '¥120', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '熊猫太可爱了，月亮产房看幼崽',
+                                '环境优美，绿化好',
+                                '科普做得好',
+                                '早上熊猫最活跃',
+                                '游览车方便'
+                            ],
+                            bad: [
+                                '人太多，排队时间长',
+                                '中午熊猫睡觉，什么都看不到',
+                                '门票偏贵',
+                                '园区太大，走路累',
+                                '餐饮选择少'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '熊猫餐厅', spice: '不辣', price: '¥50', good: ['快餐', '方便', '有熊猫造型'], bad: ['贵', '味道一般', '人多'] },
+                            { name: '竹韵餐厅', spice: '川菜', price: '¥80', good: ['川菜地道', '环境好', '服务热情'], bad: ['上菜慢', '价格高', '分量少'] },
+                            { name: '门口小吃摊', spice: '各种', price: '¥20', good: ['便宜', '方便', '选择多'], bad: ['卫生堪忧', '露天', '味道一般'] }
+                        ]
+                    },
+                    '宽窄巷子': { 
+                        duration: { leisure: '2.5h', hardcore: '1.5h' },
+                        water: '巷子里茶馆多',
+                        specialty: '蜀锦、熊猫玩偶',
+                        playTips: [
+                            '主街人多，可去旁边的泡桐树街',
+                            '喝茶掏耳朵体验一下，但问好价格',
+                            '晚上比白天更有氛围'
+                        ],
+                        hotels: [
+                            { name: '宽窄巷子青年旅舍', distance: '100m', price: '¥140', rating: 4.0 },
+                            { name: '长顺街宾馆', distance: '200m', price: '¥220', rating: 4.2 },
+                            { name: '槐树街客栈', distance: '300m', price: '¥180', rating: 4.1 },
+                            { name: '实业街酒店', distance: '400m', price: '¥250', rating: 4.3 },
+                            { name: '同仁路民宿', distance: '500m', price: '¥160', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '老成都风情，适合闲逛',
+                                '建筑有特色',
+                                '茶馆多，可以掏耳朵',
+                                '小吃多',
+                                '拍照出片'
+                            ],
+                            bad: [
+                                '商业化重，东西偏贵',
+                                '人挤人，走不动',
+                                '同质化严重',
+                                '拉客的多',
+                                '地面石板路不平'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '小龙翻大江火锅', spice: '特辣', price: '¥150', good: ['环境震撼', '表演精彩', '味道好'], bad: ['价格贵', '排队久', '服务一般'] },
+                            { name: '李雪火锅', spice: '中辣', price: '¥120', good: ['牛油味香', '毛肚脆', '价格适中'], bad: ['环境嘈杂', '上菜慢', '分量少'] },
+                            { name: '三大炮', spice: '甜', price: '¥15', good: ['糯米制品', '红糖味', '好玩'], bad: ['量少', '贵', '表演收费'] }
+                        ]
+                    },
+                    '武侯祠': { 
+                        duration: { leisure: '2.0h', hardcore: '1.2h' },
+                        water: '园区内有小卖部',
+                        specialty: '三国文创',
+                        playTips: [
+                            '红墙夹道是拍照点',
+                            '可请讲解，了解三国文化',
+                            '锦里就在旁边，可以一起逛'
+                        ],
+                        hotels: [
+                            { name: '武侯祠客栈', distance: '200m', price: '¥240', rating: 4.2 },
+                            { name: '高升桥酒店', distance: '300m', price: '¥180', rating: 4.1 },
+                            { name: '洗面桥民宿', distance: '400m', price: '¥150', rating: 4.0 },
+                            { name: '一环路宾馆', distance: '500m', price: '¥200', rating: 4.0 },
+                            { name: '浆洗街客栈', distance: '600m', price: '¥170', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '三国文化浓厚',
+                                '红墙竹影出片',
+                                '诸葛亮殿值得看',
+                                '讲解员专业',
+                                '环境清幽'
+                            ],
+                            bad: [
+                                '人太多',
+                                '讲解需要收费',
+                                '门票偏贵',
+                                '可看的不多',
+                                '周边吃饭的地方少'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '武侯祠美食街', spice: '各种', price: '¥50', good: ['选择多', '方便', '热闹'], bad: ['贵', '味道一般', '人多'] },
+                            { name: '锦里小吃', spice: '各种', price: '¥40', good: ['种类多', '价格便宜', '有特色'], bad: ['卫生一般', '露天', '嘈杂'] },
+                            { name: '三国主题餐厅', spice: '川菜', price: '¥80', good: ['环境有特色', '菜品名字有创意', '味道不错'], bad: ['价格贵', '服务一般', '上菜慢'] }
+                        ]
+                    },
+                    '锦里': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '小吃摊多',
+                        specialty: '蜀绣、麻辣牛肉干',
+                        playTips: [
+                            '晚上灯笼亮起很美',
+                            '有皮影戏和变脸表演',
+                            '小吃很多，但价格偏高'
+                        ],
+                        hotels: [
+                            { name: '锦里客栈', distance: '50m', price: '¥300', rating: 4.3 },
+                            { name: '武侯祠大街酒店', distance: '200m', price: '¥220', rating: 4.1 },
+                            { name: '通祠路宾馆', distance: '300m', price: '¥180', rating: 4.0 },
+                            { name: '染靛街民宿', distance: '400m', price: '¥150', rating: 4.0 },
+                            { name: '南浦路客栈', distance: '500m', price: '¥200', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '夜景红灯笼美',
+                                '小吃多',
+                                '有皮影戏表演',
+                                '逛街氛围好',
+                                '离武侯祠近'
+                            ],
+                            bad: [
+                                '人挤人',
+                                '同质化严重',
+                                '东西贵',
+                                '小吃味道一般',
+                                '拉客的多'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '张飞牛肉', spice: '麻辣', price: '¥50/袋', good: ['老字号', '真空包装', '适合送人'], bad: ['贵', '分量少', '味道不如以前'] },
+                            { name: '钵钵鸡', spice: '中辣', price: '¥30', good: ['冷串串', '入味', '方便'], bad: ['卫生一般', '露天', '荤素一个价'] },
+                            { name: '糖油果子', spice: '甜', price: '¥10', good: ['外脆里糯', '便宜', '传统'], bad: ['油腻', '量少', '凉了不好吃'] }
+                        ]
+                    },
+                    '都江堰': { 
+                        duration: { leisure: '4.0h', hardcore: '3.0h' },
+                        water: '景区内有卖水',
+                        specialty: '青城山茶',
+                        playTips: [
+                            '建议请讲解，了解水利工程',
+                            '晚上南桥夜景必看',
+                            '可和青城山一起安排'
+                        ],
+                        hotels: [
+                            { name: '都江堰青年旅舍', distance: '300m', price: '¥130', rating: 4.0 },
+                            { name: '离堆公园酒店', distance: '400m', price: '¥240', rating: 4.2 },
+                            { name: '灌县古城客栈', distance: '500m', price: '¥180', rating: 4.1 },
+                            { name: '南桥宾馆', distance: '600m', price: '¥200', rating: 4.0 },
+                            { name: '幸福路民宿', distance: '700m', price: '¥150', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '古代水利杰作，震撼',
+                                '景区很大，环境好',
+                                '讲解员专业',
+                                '南桥夜景美',
+                                '值得一天'
+                            ],
+                            bad: [
+                                '离市区远',
+                                '走路多，累',
+                                '门票贵',
+                                '部分施工',
+                                '餐饮选择少'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '文革葱葱卷', spice: '微辣', price: '¥15', good: ['酸甜麻辣', '本地人最爱', '便宜'], bad: ['量少', '环境一般', '服务差'] },
+                            { name: '赵卖面甜水面', spice: '甜辣', price: '¥18', good: ['甜水面', '小饺子', '味道好'], bad: ['排队久', '环境简陋', '价格小贵'] },
+                            { name: '牛肉豆花', spice: '微辣', price: '¥12', good: ['暖心暖胃', '地道小吃', '便宜'], bad: ['量少', '卫生一般', '位置难找'] }
+                        ]
+                    },
+                    '青城山': { 
+                        duration: { leisure: '5.0h', hardcore: '3.5h' },
+                        water: '山上有卖水',
+                        specialty: '青城山老腊肉',
+                        playTips: [
+                            '前山道观多，后山风景好',
+                            '穿舒适登山鞋',
+                            '下雨天路滑注意安全'
+                        ],
+                        hotels: [
+                            { name: '青城前山客栈', distance: '500m', price: '¥260', rating: 4.3 },
+                            { name: '青城山镇宾馆', distance: '800m', price: '¥180', rating: 4.1 },
+                            { name: '泰安古镇民宿', distance: '1km', price: '¥150', rating: 4.0 },
+                            { name: '后山酒店', distance: '1.5km', price: '¥200', rating: 4.0 },
+                            { name: '青城人家客栈', distance: '2km', price: '¥120', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '青城天下幽，空气好',
+                                '道教文化浓厚',
+                                '爬山健身',
+                                '前山道观多',
+                                '后山清静'
+                            ],
+                            bad: [
+                                '台阶多，累',
+                                '山上东西贵',
+                                '缆车排队久',
+                                '下雨天滑',
+                                '指示不清'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '青城山老腊肉', spice: '烟熏', price: '¥60/份', good: ['肥而不腻', '烟熏味香', '下饭'], bad: ['贵', '份量少', '有些硬'] },
+                            { name: '道家素斋', spice: '不辣', price: '¥40', good: ['清淡', '健康', '有特色'], bad: ['味道一般', '量少', '价格贵'] },
+                            { name: '青城山豆花', spice: '微辣', price: '¥15', good: ['嫩滑', '便宜', '解渴'], bad: ['调料一般', '卫生一般', '露天'] }
+                        ]
+                    },
+                    '人民公园': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '公园有茶社',
+                        specialty: '鹤鸣茶社体验',
+                        playTips: [
+                            '体验老成都慢生活',
+                            '鹤鸣茶社喝茶，掏耳朵',
+                            '相亲角可以逛逛'
+                        ],
+                        hotels: [
+                            { name: '人民公园青年旅舍', distance: '200m', price: '¥140', rating: 4.0 },
+                            { name: '少城路酒店', distance: '300m', price: '¥220', rating: 4.2 },
+                            { name: '祠堂街客栈', distance: '400m', price: '¥180', rating: 4.1 },
+                            { name: '金河路宾馆', distance: '500m', price: '¥200', rating: 4.0 },
+                            { name: '宽窄巷子民宿', distance: '600m', price: '¥250', rating: 4.3 }
+                        ],
+                        reviews: {
+                            good: [
+                                '体验老成都慢生活',
+                                '鹤鸣茶社有味道',
+                                '可以划船',
+                                '相亲角有趣',
+                                '免费公园'
+                            ],
+                            bad: [
+                                '人多',
+                                '掏耳朵贵',
+                                '茶社人多',
+                                '环境嘈杂',
+                                '停车难'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '鹤鸣茶社', spice: '无', price: '¥20', good: ['盖碗茶', '瓜子', '体验'], bad: ['人多', '瓜子不新鲜', '服务一般'] },
+                            { name: '廖老妈蹄花', spice: '不辣', price: '¥45', good: ['蹄花软烂', '汤浓', '入味'], bad: ['排队久', '价格贵', '环境一般'] },
+                            { name: '担担面', spice: '微辣', price: '¥15', good: ['成都名小吃', '便宜', '味道好'], bad: ['量少', '环境简陋', '服务差'] }
+                        ]
+                    },
+                    '春熙路': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '商场随处可买',
+                        specialty: '时尚潮流',
+                        playTips: [
+                            'IFS熊猫打卡点',
+                            '太古里建筑值得看',
+                            '购物中心，餐厅很多'
+                        ],
+                        hotels: [
+                            { name: '春熙路青年旅舍', distance: '100m', price: '¥150', rating: 4.0 },
+                            { name: '总府路酒店', distance: '200m', price: '¥260', rating: 4.3 },
+                            { name: '红星路客栈', distance: '300m', price: '¥200', rating: 4.1 },
+                            { name: '大慈寺民宿', distance: '400m', price: '¥180', rating: 4.0 },
+                            { name: '太古里宾馆', distance: '500m', price: '¥280', rating: 4.4 }
+                        ],
+                        reviews: {
+                            good: [
+                                '成都时尚中心',
+                                '太古里建筑美',
+                                'IFS熊猫打卡',
+                                '购物天堂',
+                                '餐厅多'
+                            ],
+                            bad: [
+                                '人多',
+                                '餐厅排队',
+                                '价格贵',
+                                '商业味重',
+                                '地面容易滑'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '龙抄手总店', spice: '微辣', price: '¥25', good: ['老字号', '品种多', '味道好'], bad: ['人多', '环境嘈杂', '价格小贵'] },
+                            { name: '钟水饺', spice: '甜辣', price: '¥20', good: ['蒜泥味', '甜中带辣', '传统'], bad: ['量少', '环境一般', '服务慢'] },
+                            { name: '烤匠烤鱼', spice: '中辣', price: '¥90', good: ['川味烤鱼', '麻辣入味', '配菜多'], bad: ['排队久', '价格贵', '分量少'] }
+                        ]
+                    },
+                    '杜甫草堂': { 
+                        duration: { leisure: '2.0h', hardcore: '1.2h' },
+                        water: '园区内有卖水',
+                        specialty: '草堂文创',
+                        playTips: [
+                            '红墙夹道拍照好看',
+                            '了解杜甫生平',
+                            '环境清幽，适合静心'
+                        ],
+                        hotels: [
+                            { name: '草堂客栈', distance: '300m', price: '¥200', rating: 4.1 },
+                            { name: '浣花溪酒店', distance: '400m', price: '¥220', rating: 4.2 },
+                            { name: '送仙桥民宿', distance: '500m', price: '¥160', rating: 4.0 },
+                            { name: '青华路宾馆', distance: '600m', price: '¥180', rating: 4.0 },
+                            { name: '二环路青年旅舍', distance: '700m', price: '¥130', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '文化氛围浓',
+                                '园林幽静',
+                                '了解杜甫生平',
+                                '红墙夹道好看',
+                                '人少清净'
+                            ],
+                            bad: [
+                                '门票偏贵',
+                                '可看的不多',
+                                '讲解要收费',
+                                '交通不便',
+                                '周边吃饭地方少'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '草堂茶社', spice: '无', price: '¥30', good: ['环境清幽', '茶不错', '点心好'], bad: ['贵', '服务一般', '量少'] },
+                            { name: '浣花溪川菜', spice: '川菜', price: '¥70', good: ['地道川菜', '环境好', '价格适中'], bad: ['上菜慢', '人多', '服务差'] },
+                            { name: '草堂小吃', spice: '各种', price: '¥20', good: ['方便', '便宜', '种类多'], bad: ['卫生一般', '露天', '味道一般'] }
+                        ]
+                    },
+                    '文殊院': { 
+                        duration: { leisure: '1.5h', hardcore: '1.0h' },
+                        water: '院内可接水',
+                        specialty: '素斋、宫廷糕点',
+                        playTips: [
+                            '烧香祈福免费',
+                            '素斋不错',
+                            '宫廷糕点铺排队但值得'
+                        ],
+                        hotels: [
+                            { name: '文殊院客栈', distance: '200m', price: '¥160', rating: 4.0 },
+                            { name: '草市街酒店', distance: '300m', price: '¥200', rating: 4.1 },
+                            { name: '北大街民宿', distance: '400m', price: '¥180', rating: 4.0 },
+                            { name: '人民中路宾馆', distance: '500m', price: '¥220', rating: 4.2 },
+                            { name: '顺城街青年旅舍', distance: '600m', price: '¥140', rating: 4.0 }
+                        ],
+                        reviews: {
+                            good: [
+                                '佛教圣地，清净',
+                                '素斋好吃',
+                                '宫廷糕点铺排队也值',
+                                '可以烧香祈福',
+                                '免费入园'
+                            ],
+                            bad: [
+                                '人多',
+                                '糕点铺排队太长',
+                                '部分地方在维修',
+                                '商业化',
+                                '周边交通乱'
+                            ]
+                        },
+                        foodsDetail: [
+                            { name: '洞子口张凉粉', spice: '甜辣', price: '¥15', good: ['凉粉', '甜水面', '老字号'], bad: ['排队久', '环境一般', '服务差'] },
+                            { name: '宫廷糕点铺', spice: '甜', price: '¥20', good: ['桃酥', '拿破仑', '便宜'], bad: ['排队太长', '露天', '限量'] },
+                            { name: '严太婆锅魁', spice: '微辣', price: '¥10', good: ['锅魁夹三丝', '香脆', '便宜'], bad: ['排队久', '环境简陋', '量小'] }
+                        ]
+                    }
+                },
+                // 厦门 (部分)
+                xiamen: {
+                    '鼓浪屿': { 
+                        duration: { leisure: '5.0h', hardcore: '3.5h' },
+                        water: '岛上随处可买水，价格稍贵',
+                        specialty: '馅饼、牛轧糖',
+                        playTips: ['船票需提前预订','日光岩看日出','岛上无机动车'],
+                        hotels: [
+                            { name: '鼓浪屿民宿', distance: '岛上', price: '¥300', rating: 4.3 },
+                            { name: '中山路客栈', distance: '2km', price: '¥200', rating: 4.1 },
+                            { name: '厦大公寓', distance: '3km', price: '¥180', rating: 4.0 }
+                        ],
+                        reviews: { good: ['万国建筑博览','日光岩俯瞰全岛','龙头路小吃多'], bad: ['人太多','船票难抢','岛上东西贵'] },
+                        foodsDetail: [
+                            { name: '龙头鱼丸', spice: '不辣', price: '¥15', good: ['鱼丸Q弹','汤鲜'], bad: ['排队久','环境简陋'] },
+                            { name: '叶氏麻糍', spice: '甜', price: '¥10', good: ['糯软香甜'], bad: ['要排队','容易饱'] },
+                            { name: '沈家肠粉', spice: '微辣', price: '¥12', good: ['肠粉滑嫩','酱汁好'], bad: ['人多','座位少'] }
+                        ]
+                    },
+                    '厦门大学': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '校内便利店多',
+                        specialty: '厦大文创',
+                        playTips: ['需提前三天预约','芙蓉隧道必拍','情人谷风景好'],
+                        hotels: [
+                            { name: '厦大公寓', distance: '200m', price: '¥200', rating: 4.1 },
+                            { name: '猫街民宿', distance: '500m', price: '¥180', rating: 4.0 },
+                            { name: '沙坡尾青年旅舍', distance: '600m', price: '¥150', rating: 4.0 }
+                        ],
+                        reviews: { good: ['中国最美大学之一','芙蓉隧道有创意','校园环境优美'], bad: ['预约太难','游客多影响学生','周边吃饭贵'] },
+                        foodsDetail: [
+                            { name: '厦大食堂', spice: '不辣', price: '¥20', good: ['便宜','体验学生餐'], bad: ['需校园卡','人多'] },
+                            { name: '猫街小炒', spice: '微辣', price: '¥40', good: ['家常味','分量足'], bad: ['环境一般','油大'] },
+                            { name: '沙坡尾海鲜', spice: '各种', price: '¥80', good: ['新鲜','现杀'], bad: ['贵','加工费高'] }
+                        ]
+                    },
+                    '曾厝垵': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '小吃摊多',
+                        specialty: '各种小吃',
+                        playTips: ['晚上比白天热闹','主街人多可走小巷','海边就在旁边'],
+                        hotels: [
+                            { name: '曾厝垵客栈', distance: '100m', price: '¥220', rating: 4.1 },
+                            { name: '环岛路民宿', distance: '300m', price: '¥200', rating: 4.0 },
+                            { name: '黄厝宾馆', distance: '1km', price: '¥180', rating: 4.0 }
+                        ],
+                        reviews: { good: ['文艺小渔村','小吃多','民宿有特色'], bad: ['商业化重','东西贵','人挤人'] },
+                        foodsDetail: [
+                            { name: '阿信厚吐司', spice: '甜', price: '¥20', good: ['吐司软','酱料足'], bad: ['排队久','价格小贵'] },
+                            { name: '八婆婆烧仙草', spice: '甜', price: '¥8', good: ['便宜','料多'], bad: ['排队','甜度高'] },
+                            { name: '林氏鱼丸', spice: '不辣', price: '¥15', good: ['鱼丸弹牙','汤鲜'], bad: ['份量少','贵'] }
+                        ]
+                    },
+                    '环岛路': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '路边便利店',
+                        specialty: '无',
+                        playTips: ['适合骑行','珍珠湾沙滩','傍晚看日落'],
+                        hotels: [
+                            { name: '环岛路青年旅舍', distance: '100m', price: '¥120', rating: 4.0 },
+                            { name: '黄厝宾馆', distance: '500m', price: '¥180', rating: 4.0 }
+                        ],
+                        reviews: { good: ['最美马拉松赛道','海景漂亮','骑行舒服'], bad: ['夏天太晒','人车混行危险'] },
+                        foodsDetail: [
+                            { name: '海边大排档', spice: '各种', price: '¥80', good: ['海鲜新鲜'], bad: ['贵','宰客'] }
+                        ]
+                    }
+                },
+                // 温州 (部分)
+                wenzhou: {
+                    '江心屿': { 
+                        duration: { leisure: '2.5h', hardcore: '1.5h' },
+                        water: '岛上有卖水',
+                        specialty: '无',
+                        playTips: ['坐轮渡上岛','双塔是标志','谢灵运纪念馆'],
+                        hotels: [
+                            { name: '江心屿码头宾馆', distance: '200m', price: '¥200', rating: 4.0 },
+                            { name: '望江路酒店', distance: '500m', price: '¥240', rating: 4.1 }
+                        ],
+                        reviews: { good: ['诗之岛','双塔有特色','轮渡体验'], bad: ['可玩性一般','岛上东西贵'] },
+                        foodsDetail: [
+                            { name: '江心屿素斋', spice: '不辣', price: '¥30', good: ['清淡','便宜'], bad: ['味道一般','选择少'] },
+                            { name: '望江路海鲜', spice: '各种', price: '¥80', good: ['新鲜','本地做法'], bad: ['贵','环境一般'] }
+                        ]
+                    },
+                    '五马街': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '商场多',
+                        specialty: '温州特产',
+                        playTips: ['步行街','老字号多','晚上热闹'],
+                        hotels: [
+                            { name: '五马街青年旅舍', distance: '50m', price: '¥140', rating: 4.0 },
+                            { name: '解放街酒店', distance: '200m', price: '¥220', rating: 4.1 }
+                        ],
+                        reviews: { good: ['温州第一街','购物方便','老字号多'], bad: ['人多','商业化','东西贵'] },
+                        foodsDetail: [
+                            { name: '长人馄饨', spice: '不辣', price: '¥15', good: ['馄饨皮薄','汤鲜'], bad: ['人多','环境一般'] },
+                            { name: '矮人松糕', spice: '甜', price: '¥10', good: ['松糕软糯'], bad: ['排队','易饱'] }
+                        ]
+                    },
+                    '南塘街': { 
+                        duration: { leisure: '1.5h', hardcore: '0.8h' },
+                        water: '沿街便利店多',
+                        specialty: '无',
+                        playTips: ['夜景美','酒吧餐饮多','适合散步'],
+                        hotels: [
+                            { name: '南塘街客栈', distance: '100m', price: '¥220', rating: 4.1 },
+                            { name: '白鹿洲酒店', distance: '300m', price: '¥240', rating: 4.2 }
+                        ],
+                        reviews: { good: ['温州秦淮河','夜景漂亮','餐厅多'], bad: ['冬天风大','消费高'] },
+                        foodsDetail: [
+                            { name: '南塘酒吧街', spice: '各种', price: '¥100', good: ['气氛好','有乐队'], bad: ['贵','人多'] },
+                            { name: '温州海鲜排档', spice: '各种', price: '¥80', good: ['新鲜','锅气足'], bad: ['环境一般','宰客'] }
+                        ]
+                    }
+                },
+                // 南充 (部分)
+                nanchong: {
+                    '阆中古城': { 
+                        duration: { leisure: '5.0h', hardcore: '3.0h' },
+                        water: '古城内随处可买',
+                        specialty: '保宁醋、张飞牛肉',
+                        playTips: ['中天楼看全景','汉桓侯祠','晚上夜景美'],
+                        hotels: [
+                            { name: '阆中古城客栈', distance: '100m', price: '¥220', rating: 4.2 },
+                            { name: '南津关宾馆', distance: '500m', price: '¥200', rating: 4.0 }
+                        ],
+                        reviews: { good: ['风水古城','保存完好','张飞牛肉正宗'], bad: ['商业化重','门票套票贵'] },
+                        foodsDetail: [
+                            { name: '张飞牛肉', spice: '微辣', price: '¥50', good: ['牛肉筋道','真空包装'], bad: ['贵','份量少'] },
+                            { name: '保宁醋', spice: '酸', price: '¥20', good: ['醋香','可品尝'], bad: ['贵','瓶装重'] }
+                        ]
+                    },
+                    '西山': { 
+                        duration: { leisure: '2.0h', hardcore: '1.0h' },
+                        water: '山脚有卖水',
+                        specialty: '无',
+                        playTips: ['俯瞰南充全景','万卷楼纪念陈寿','爬山锻炼'],
+                        hotels: [
+                            { name: '西山青年旅舍', distance: '200m', price: '¥140', rating: 4.0 },
+                            { name: '玉屏公园酒店', distance: '500m', price: '¥200', rating: 4.0 }
+                        ],
+                        reviews: { good: ['城市绿肺','俯瞰南充','免费'], bad: ['台阶多','可玩性一般'] },
+                        foodsDetail: [
+                            { name: '西山农家乐', spice: '微辣', price: '¥50', good: ['土菜','便宜'], bad: ['卫生一般','上菜慢'] },
+                            { name: '南充米粉', spice: '微辣', price: '¥8', good: ['米粉细','汤鲜','早餐'], bad: ['环境简陋'] }
+                        ]
+                    }
+                }
+            };
+
+            // 城市避坑提示
+            const cityTips = {
+                chongqing: '金西梅¥30/斤千万别买；长江索道提前公众号预约¥20；洪崖洞没有快速通道；李子坝可去新都巷步道。',
+                chengdu: '宽窄巷子主街东西偏贵；熊猫基地早上去；都江堰南桥夜景必看；文殊院宫廷糕点排队。',
+                xiamen: '鼓浪屿船票提前预订；厦大需预约；曾厝垵小吃比中山路便宜。',
+                wenzhou: '江心屿轮渡班次少；雁荡山需包车；五马街老字号多。',
+                nanchong: '阆中古城套票可按需买；张飞牛肉真空包装好带；西山免费。'
+            };
+
+            // 美食数据（用于快速选餐）
+            const cityFoods = {
+                chongqing: { 
+                    '解放碑': [ { name: '花市豌杂面', spice: '微辣', price: '¥18', recommend: '豌杂软烂' } ],
+                    '磁器口': [ { name: '陈麻花', spice: '不辣', price: '¥15/袋', recommend: '酥脆' } ]
+                },
+                chengdu: { 
+                    '宽窄巷子': [ { name: '小龙翻大江火锅', spice: '特辣', price: '¥150', recommend: '环境震撼' } ],
+                    '锦里': [ { name: '张飞牛肉', spice: '麻辣', price: '¥50', recommend: '老字号' } ],
+                    '都江堰': [ { name: '文革葱葱卷', spice: '微辣', price: '¥15', recommend: '酸甜麻辣' } ]
+                },
+                xiamen: { 
+                    '鼓浪屿': [ { name: '龙头鱼丸', spice: '不辣', price: '¥15', recommend: '鱼丸Q弹' } ],
+                    '曾厝垵': [ { name: '阿信厚吐司', spice: '甜', price: '¥20', recommend: '吐司软' } ]
+                },
+                wenzhou: { 
+                    '五马街': [ { name: '长人馄饨', spice: '不辣', price: '¥15', recommend: '馄饨皮薄' } ],
+                    '南塘街': [ { name: '温州海鲜排档', spice: '各种', price: '¥80', recommend: '新鲜' } ]
+                },
+                nanchong: { 
+                    '阆中古城': [ { name: '张飞牛肉', spice: '微辣', price: '¥50', recommend: '牛肉筋道' } ]
+                }
+            };
+
+            // ---------- 完整的行程方案 (1/2/3日游，游玩版&特种兵版) ----------
+            const planData = {
+                // 重庆
+                chongqing: {
+                    1: {
+                        leisure: {
+                            days: [{ title: '游玩版一日', spots: ['山城步道','解放碑','洪崖洞'], times: ['09:00','14:00','19:30'], meals: ['12:00午餐·解放碑','18:00晚餐·洪崖洞'] }],
+                            steps: 15000, floors: 30, totalHours: 10, dayCost: [0,0,0]
+                        },
+                        hardcore: {
+                            days: [{ title: '特种兵一日', spots: ['解放碑','长江索道','磁器口','洪崖洞'], times: ['08:00','10:00','13:00','19:30'], meals: ['12:00午餐·磁器口','18:00晚餐·解放碑'] }],
+                            steps: 25000, floors: 70, totalHours: 14, dayCost: [0,20,0,0]
+                        }
+                    },
+                    2: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 渝中慢享', spots: ['山城步道','解放碑','长江索道'], times: ['09:00','13:00','16:00'], meals: ['12:00午餐·解放碑','18:00晚餐·解放碑'] },
+                                { title: 'Day2 南岸夜景', spots: ['湖广会馆','南滨路'], times: ['09:30','19:00'], meals: ['12:00午餐·湖广会馆','18:00晚餐·南滨路'] }
+                            ],
+                            steps: 22000, floors: 40, totalHours: 16, dayCost: [20,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 母城极速', spots: ['解放碑','长江索道','磁器口','十八梯'], times: ['08:00','10:00','13:00','19:00'], meals: ['12:00午餐·磁器口','18:00晚餐·解放碑'] },
+                                { title: 'Day2 西郊暴走', spots: ['李子坝','鹅岭二厂','山城步道','洪崖洞'], times: ['09:00','11:00','14:00','19:30'], meals: ['12:00午餐·李子坝','18:00晚餐·洪崖洞'] }
+                            ],
+                            steps: 45000, floors: 120, totalHours: 24, dayCost: [20,0]
+                        }
+                    },
+                    3: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 渝中', spots: ['解放碑','十八梯','洪崖洞'], times: ['09:00','14:00','19:30'], meals: ['12:00午餐·解放碑','18:00晚餐·洪崖洞'] },
+                                { title: 'Day2 西郊', spots: ['磁器口','鹅岭二厂'], times: ['09:30','14:00'], meals: ['12:00午餐·磁器口','18:00晚餐·鹅岭二厂'] },
+                                { title: 'Day3 南岸', spots: ['山城步道','南滨路'], times: ['09:00','16:00'], meals: ['12:00午餐·山城步道','18:00晚餐·南滨路'] }
+                            ],
+                            steps: 30000, floors: 60, totalHours: 20, dayCost: [0,0,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 渝中', spots: ['解放碑','长江索道','洪崖洞'], times: ['08:00','10:00','19:30'], meals: ['12:00午餐·解放碑','18:00晚餐·洪崖洞'] },
+                                { title: 'Day2 西郊', spots: ['磁器口','鹅岭二厂','十八梯'], times: ['09:00','13:00','17:00'], meals: ['12:00午餐·磁器口','18:00晚餐·十八梯'] },
+                                { title: 'Day3 南岸', spots: ['山城步道','湖广会馆','南滨路'], times: ['09:00','13:00','18:00'], meals: ['12:00午餐·山城步道','18:00晚餐·南滨路'] }
+                            ],
+                            steps: 60000, floors: 150, totalHours: 30, dayCost: [20,0,30]
+                        }
+                    }
+                },
+                // 成都 (完整修正)
+                chengdu: {
+                    1: {
+                        leisure: {
+                            days: [{ title: '游玩版一日', spots: ['大熊猫基地','人民公园','宽窄巷子'], times: ['09:00','14:00','17:30'], meals: ['12:00午餐·大熊猫基地','18:00晚餐·宽窄巷子'] }],
+                            steps: 15000, floors: 20, totalHours: 10, dayCost: [55,0,0]
+                        },
+                        hardcore: {
+                            days: [{ title: '特种兵一日', spots: ['大熊猫基地','宽窄巷子','武侯祠','锦里'], times: ['07:30','12:00','14:30','17:30'], meals: ['12:00午餐·宽窄巷子','18:00晚餐·锦里'] }],
+                            steps: 22000, floors: 30, totalHours: 12, dayCost: [55,0,50,0]
+                        }
+                    },
+                    2: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 市区慢享', spots: ['大熊猫基地','人民公园','宽窄巷子'], times: ['09:00','13:30','16:00'], meals: ['12:00午餐·大熊猫基地','18:00晚餐·宽窄巷子'] },
+                                { title: 'Day2 文化体验', spots: ['武侯祠','锦里','杜甫草堂'], times: ['09:30','12:30','15:00'], meals: ['12:00午餐·武侯祠','18:00晚餐·杜甫草堂'] }
+                            ],
+                            steps: 20000, floors: 20, totalHours: 16, dayCost: [55,50]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 市区暴走', spots: ['大熊猫基地','宽窄巷子','武侯祠','锦里'], times: ['07:30','11:30','14:30','17:30'], meals: ['12:00午餐·宽窄巷子','18:00晚餐·锦里'] },
+                                { title: 'Day2 周边深度', spots: ['都江堰','青城山'], times: ['08:00','13:00'], meals: ['12:00午餐·都江堰','18:00晚餐·青城山'] }
+                            ],
+                            steps: 40000, floors: 60, totalHours: 24, dayCost: [55,80]
+                        }
+                    },
+                    3: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 熊猫基地', spots: ['大熊猫基地','人民公园'], times: ['09:00','14:00'], meals: ['12:00午餐·大熊猫基地','18:00晚餐·人民公园'] },
+                                { title: 'Day2 古韵成都', spots: ['武侯祠','锦里','宽窄巷子'], times: ['09:30','12:30','15:00'], meals: ['12:00午餐·武侯祠','18:00晚餐·宽窄巷子'] },
+                                { title: 'Day3 文青之旅', spots: ['杜甫草堂','文殊院','春熙路'], times: ['09:30','13:30','16:00'], meals: ['12:00午餐·杜甫草堂','18:00晚餐·春熙路'] }
+                            ],
+                            steps: 28000, floors: 30, totalHours: 20, dayCost: [55,50,50]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 市区全覆盖', spots: ['大熊猫基地','宽窄巷子','武侯祠','锦里'], times: ['07:30','11:30','14:30','17:30'], meals: ['12:00午餐·宽窄巷子','18:00晚餐·锦里'] },
+                                { title: 'Day2 山水古迹', spots: ['都江堰','青城山'], times: ['08:00','13:00'], meals: ['12:00午餐·都江堰','18:00晚餐·青城山'] },
+                                { title: 'Day3 文化扫街', spots: ['杜甫草堂','文殊院','春熙路'], times: ['09:00','13:00','16:00'], meals: ['12:00午餐·杜甫草堂','18:00晚餐·春熙路'] }
+                            ],
+                            steps: 55000, floors: 80, totalHours: 30, dayCost: [55,80,50]
+                        }
+                    }
+                },
+                // 厦门
+                xiamen: {
+                    1: {
+                        leisure: {
+                            days: [{ title: '游玩版一日', spots: ['鼓浪屿','环岛路'], times: ['09:00','16:00'], meals: ['12:00午餐·鼓浪屿','18:00晚餐·曾厝垵'] }],
+                            steps: 15000, floors: 10, totalHours: 10, dayCost: [0,0]
+                        },
+                        hardcore: {
+                            days: [{ title: '特种兵一日', spots: ['鼓浪屿','厦门大学','曾厝垵','环岛路'], times: ['08:00','13:00','16:00','19:00'], meals: ['12:00午餐·鼓浪屿','18:00晚餐·曾厝垵'] }],
+                            steps: 20000, floors: 20, totalHours: 12, dayCost: [0,0,0,0]
+                        }
+                    },
+                    2: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 鼓浪屿', spots: ['鼓浪屿','中山路'], times: ['09:00','19:00'], meals: ['12:00午餐·鼓浪屿','18:00晚餐·中山路'] },
+                                { title: 'Day2 厦大', spots: ['厦门大学','曾厝垵','环岛路'], times: ['09:30','14:00','17:00'], meals: ['12:00午餐·厦门大学','18:00晚餐·曾厝垵'] }
+                            ],
+                            steps: 20000, floors: 20, totalHours: 16, dayCost: [0,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 鼓浪屿', spots: ['鼓浪屿','中山路'], times: ['08:00','19:00'], meals: ['12:00午餐·鼓浪屿','18:00晚餐·中山路'] },
+                                { title: 'Day2 厦门大学', spots: ['厦门大学','南普陀寺','曾厝垵','环岛路'], times: ['08:30','11:00','14:00','17:00'], meals: ['12:00午餐·厦门大学','18:00晚餐·曾厝垵'] }
+                            ],
+                            steps: 25000, floors: 25, totalHours: 24, dayCost: [0,0]
+                        }
+                    },
+                    3: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 鼓浪屿', spots: ['鼓浪屿'], times: ['09:00'], meals: ['12:00午餐·鼓浪屿','18:00晚餐·中山路'] },
+                                { title: 'Day2 厦门大学', spots: ['厦门大学','曾厝垵'], times: ['09:30','16:00'], meals: ['12:00午餐·厦门大学','18:00晚餐·曾厝垵'] },
+                                { title: 'Day3 环岛路', spots: ['环岛路','中山路'], times: ['09:00','16:00'], meals: ['12:00午餐·环岛路','18:00晚餐·中山路'] }
+                            ],
+                            steps: 22000, floors: 20, totalHours: 20, dayCost: [0,0,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 鼓浪屿', spots: ['鼓浪屿','中山路'], times: ['08:00','19:00'], meals: ['12:00午餐·鼓浪屿','18:00晚餐·中山路'] },
+                                { title: 'Day2 厦门大学', spots: ['厦门大学','南普陀寺','曾厝垵'], times: ['08:30','11:00','16:00'], meals: ['12:00午餐·厦门大学','18:00晚餐·曾厝垵'] },
+                                { title: 'Day3 环岛路', spots: ['环岛路','胡里山炮台','白城沙滩'], times: ['09:00','13:00','16:00'], meals: ['12:00午餐·环岛路','18:00晚餐·曾厝垵'] }
+                            ],
+                            steps: 30000, floors: 30, totalHours: 30, dayCost: [0,0,0]
+                        }
+                    }
+                },
+                // 温州
+                wenzhou: {
+                    1: {
+                        leisure: {
+                            days: [{ title: '游玩版一日', spots: ['江心屿','五马街'], times: ['09:00','14:00'], meals: ['12:00午餐·五马街','18:00晚餐·五马街'] }],
+                            steps: 10000, floors: 10, totalHours: 9, dayCost: [30,0]
+                        },
+                        hardcore: {
+                            days: [{ title: '特种兵一日', spots: ['江心屿','五马街','南塘街'], times: ['08:00','13:00','17:00'], meals: ['12:00午餐·五马街','18:00晚餐·南塘街'] }],
+                            steps: 15000, floors: 15, totalHours: 11, dayCost: [30,0,0]
+                        }
+                    },
+                    2: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 江心屿', spots: ['江心屿','五马街'], times: ['09:00','16:00'], meals: ['12:00午餐·五马街','18:00晚餐·五马街'] },
+                                { title: 'Day2 南塘', spots: ['南塘街','温州博物馆'], times: ['09:30','14:00'], meals: ['12:00午餐·南塘街','18:00晚餐·南塘街'] }
+                            ],
+                            steps: 15000, floors: 15, totalHours: 16, dayCost: [30,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 江心屿', spots: ['江心屿','五马街','南塘街'], times: ['08:00','12:00','17:00'], meals: ['12:00午餐·五马街','18:00晚餐·南塘街'] },
+                                { title: 'Day2 雁荡山', spots: ['雁荡山'], times: ['08:00'], meals: ['12:00午餐·雁荡山','18:00晚餐·雁荡山'] }
+                            ],
+                            steps: 25000, floors: 50, totalHours: 24, dayCost: [30,0]
+                        }
+                    },
+                    3: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 江心屿', spots: ['江心屿'], times: ['09:00'], meals: ['12:00午餐·江心屿','18:00晚餐·五马街'] },
+                                { title: 'Day2 五马街', spots: ['五马街','南塘街'], times: ['09:30','16:00'], meals: ['12:00午餐·五马街','18:00晚餐·南塘街'] },
+                                { title: 'Day3 周边', spots: ['雁荡山'], times: ['08:00'], meals: ['12:00午餐·雁荡山','18:00晚餐·雁荡山'] }
+                            ],
+                            steps: 25000, floors: 40, totalHours: 22, dayCost: [30,0,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 江心屿', spots: ['江心屿','五马街'], times: ['08:00','14:00'], meals: ['12:00午餐·五马街','18:00晚餐·五马街'] },
+                                { title: 'Day2 雁荡山', spots: ['雁荡山'], times: ['08:00'], meals: ['12:00午餐·雁荡山','18:00晚餐·雁荡山'] },
+                                { title: 'Day3 楠溪江', spots: ['楠溪江','芙蓉古村'], times: ['08:00','14:00'], meals: ['12:00午餐·楠溪江','18:00晚餐·楠溪江'] }
+                            ],
+                            steps: 35000, floors: 60, totalHours: 30, dayCost: [30,0,0]
+                        }
+                    }
+                },
+                // 南充
+                nanchong: {
+                    1: {
+                        leisure: {
+                            days: [{ title: '游玩版一日', spots: ['阆中古城'], times: ['09:00'], meals: ['12:00午餐·阆中古城','18:00晚餐·南充市区'] }],
+                            steps: 15000, floors: 30, totalHours: 8, dayCost: [0]
+                        },
+                        hardcore: {
+                            days: [{ title: '特种兵一日', spots: ['阆中古城','西山'], times: ['08:00','15:00'], meals: ['12:00午餐·阆中古城','18:00晚餐·南充市区'] }],
+                            steps: 20000, floors: 40, totalHours: 12, dayCost: [0,0]
+                        }
+                    },
+                    2: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 阆中古城', spots: ['阆中古城'], times: ['09:00'], meals: ['12:00午餐·阆中古城','18:00晚餐·阆中古城'] },
+                                { title: 'Day2 南充市区', spots: ['西山','北湖公园'], times: ['09:00','14:00'], meals: ['12:00午餐·西山','18:00晚餐·北湖公园'] }
+                            ],
+                            steps: 20000, floors: 35, totalHours: 16, dayCost: [0,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 阆中古城', spots: ['阆中古城','滕王阁'], times: ['08:00','14:00'], meals: ['12:00午餐·阆中古城','18:00晚餐·阆中古城'] },
+                                { title: 'Day2 南充', spots: ['西山','北湖公园','凌云山'], times: ['08:00','13:00','16:00'], meals: ['12:00午餐·西山','18:00晚餐·北湖公园'] }
+                            ],
+                            steps: 25000, floors: 45, totalHours: 24, dayCost: [0,0]
+                        }
+                    },
+                    3: {
+                        leisure: {
+                            days: [
+                                { title: 'Day1 阆中', spots: ['阆中古城'], times: ['09:00'], meals: ['12:00午餐·阆中古城','18:00晚餐·阆中古城'] },
+                                { title: 'Day2 南充', spots: ['西山','北湖公园'], times: ['09:00','14:00'], meals: ['12:00午餐·西山','18:00晚餐·北湖公园'] },
+                                { title: 'Day3 周边', spots: ['升钟湖'], times: ['09:00'], meals: ['12:00午餐·升钟湖','18:00晚餐·升钟湖'] }
+                            ],
+                            steps: 25000, floors: 40, totalHours: 22, dayCost: [0,0,0]
+                        },
+                        hardcore: {
+                            days: [
+                                { title: 'Day1 阆中', spots: ['阆中古城','滕王阁'], times: ['08:00','14:00'], meals: ['12:00午餐·阆中古城','18:00晚餐·阆中古城'] },
+                                { title: 'Day2 南充', spots: ['西山','北湖公园','凌云山'], times: ['08:00','13:00','16:00'], meals: ['12:00午餐·西山','18:00晚餐·北湖公园'] },
+                                { title: 'Day3 南部', spots: ['升钟湖','禹迹山'], times: ['08:00','14:00'], meals: ['12:00午餐·升钟湖','18:00晚餐·升钟湖'] }
+                            ],
+                            steps: 35000, floors: 60, totalHours: 30, dayCost: [0,0,0]
+                        }
+                    }
+                }
+            };
+
+            // 当前状态
+            let currentCity = 'chongqing';
+            let currentPlan = '1';
+            let currentVersion = 'leisure';
+            let weatherData = null;
+
+            async function initWeather() {
+                weatherData = await fetchRealWeather(currentCity);
+                updateWeatherUI();
+            }
+
+            function updateWeatherUI() {
+                if (!weatherData) return;
+                document.getElementById('weatherDesc').innerText = `${weatherData.now.temp}°C ${weatherData.now.text}`;
+                document.getElementById('humidity').innerText = `${weatherData.now.humidity}%`;
+                const weeklyDiv = document.getElementById('weeklyForecast');
+                weeklyDiv.innerHTML = weatherData.daily.slice(0, 7).map(d => 
+                    `<div class="weather-item">${d.fxDate}<br>${d.tempMax}/${d.tempMin}<br>${d.textDay}</div>`
+                ).join('');
+
+                const temp = parseInt(weatherData.now.temp);
+                const humidity = parseInt(weatherData.now.humidity || '70');
+                let sensation = '';
+                if (temp < 5) sensation = '❄️ 严寒，羽绒服+帽子手套';
+                else if (temp < 10) sensation = '❄️ 寒冷，厚羽绒服';
+                else if (temp < 16) sensation = '🍂 偏凉，薄外套+围巾';
+                else if (temp < 25) sensation = '🌸 舒适，单衣+外套备用';
+                else sensation = '☀️ 较热，短袖+防晒';
+                document.getElementById('sensationText').innerText = `当前${temp}°C，湿度${humidity}%，${sensation}`;
+                document.getElementById('avoidText').innerText = cityTips[currentCity];
+            }
+
+            function updateTime() {
+                const now = new Date();
+                const beijing = new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60000);
+                document.getElementById('liveTime').innerText = beijing.toLocaleTimeString('zh-CN', { hour12: false });
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            function renderSchedule() {
+                const city = citySpots[currentCity];
+                const plan = planData[currentCity][currentPlan][currentVersion];
+                if (!plan) return;
+                const container = document.getElementById('scheduleContainer');
+                container.innerHTML = '';
+
+                plan.days.forEach((day, dayIdx) => {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day-block';
+                    let dayHtml = `<div class="day-title">${day.title}</div>`;
+                    let dayTotalCost = 0;
+
+                    day.spots.forEach((spotName, spotIdx) => {
+                        const spotData = city[spotName];
+                        if (!spotData) return;
+                        const spotTime = day.times[spotIdx];
+                        const duration = spotData.duration[currentVersion];
+                        const spotCost = (plan.dayCost && plan.dayCost[dayIdx]) ? plan.dayCost[dayIdx] : 0;
+                        dayTotalCost += spotCost;
+                        const spotId = `spot-${currentCity}-${currentPlan}-${currentVersion}-${dayIdx}-${spotIdx}`;
+
+                        dayHtml += `
+                            <div class="spot-item">
+                                <div class="spot-header">
+                                    <div class="spot-name">${spotName}<span class="spot-duration">停留 ${duration}</span></div>
+                                    <div class="spot-time">${spotTime}</div>
+                                </div>
+                                <div class="spot-desc"><span><i class="fas fa-tag"></i> 门票参考 ¥${spotCost}</span></div>
+                                <div class="spot-tips">
+                                    <span><i class="fas fa-tint"></i> ${spotData.water}</span>
+                                    <span><i class="fas fa-gift"></i> 特产：${spotData.specialty}</span>
+                                </div>
+                                <div class="play-tips"><i class="fas fa-lightbulb"></i> ${spotData.playTips.join(' · ')}</div>
+                                <div class="nav-buttons">
+                                    <a href="https://uri.amap.com/marker?position=106.575,29.557&name=${encodeURIComponent(spotName)}" target="_blank" class="nav-btn"><i class="fas fa-map-marker-alt"></i> 查看位置</a>
+                                    <a href="https://uri.amap.com/navigation?to=106.575,29.557,${encodeURIComponent(spotName)}&mode=drive" target="_blank" class="nav-btn"><i class="fas fa-route"></i> 路线规划</a>
+                                </div>
+                                <button class="detail-toggle" data-target="${spotId}">▼ 查看详情</button>
+                                <div id="${spotId}" class="spot-detail">
+                                    <div class="detail-section">
+                                        <h4>⭐ 真实用户评价</h4>
+                                        <div><strong>5条好评：</strong>${spotData.reviews.good.map(r => `<div class="review-item"><i class="fas fa-thumbs-up"></i> ${r}</div>`).join('')}</div>
+                                        <div><strong>5条差评：</strong>${spotData.reviews.bad.map(r => `<div class="review-item"><i class="fas fa-thumbs-down"></i> ${r}</div>`).join('')}</div>
+                                    </div>
+                                    <div class="detail-section">
+                                        <h4>🍜 周边美食详细评价</h4>
+                                        ${spotData.foodsDetail.map(f => `<div class="food-detail-item"><div><span class="food-name">${f.name}</span> <span class="food-spice">${f.spice}</span> ${f.price}</div><div><strong>👍 好评：</strong>${f.good.join('、')}</div><div><strong>👎 差评：</strong>${f.bad.join('、')}</div></div>`).join('')}
+                                    </div>
+                                    <div class="detail-section">
+                                        <h4>🏨 周边¥100-300酒店推荐</h4>
+                                        ${spotData.hotels.map(h => `<div class="hotel-item"><span class="hotel-name">${h.name}</span> · ${h.distance} · ${h.price} · ⭐${h.rating}</div>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        if (day.meals) {
+                            day.meals.forEach(meal => {
+                                const [time, desc] = meal.split('·');
+                                if (spotTime === time) {
+                                    const mealSpot = desc;
+                                    const foods = (cityFoods[currentCity] && cityFoods[currentCity][mealSpot]) || [];
+                                    if (foods.length > 0) {
+                                        dayHtml += `
+                                            <div style="margin:1rem 0 0.5rem;">
+                                                <div style="font-weight:700; margin-bottom:0.5rem;">🍽️ ${meal} 推荐</div>
+                                                <div class="food-row">
+                                                    ${foods.slice(0,3).map(f => `<div class="food-card"><div><span class="food-name">${f.name}</span> <span class="food-spice">${f.spice}</span></div><div class="price">${f.price}</div><div class="rec">👍 ${f.recommend}</div></div>`).join('')}
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    dayHtml += `<div class="day-total">本日花费合计：¥${dayTotalCost}</div>`;
+                    dayDiv.innerHTML = dayHtml;
+                    container.appendChild(dayDiv);
+                });
+
+                document.getElementById('stepEst').innerText = `步数 ${plan.steps}`;
+                document.getElementById('floorEst').innerText = `楼层 ${plan.floors}`;
+                document.getElementById('totalTime').innerText = `总时长 ${plan.totalHours}小时`;
+
+                document.querySelectorAll('.detail-toggle').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const targetId = btn.dataset.target;
+                        const detailDiv = document.getElementById(targetId);
+                        detailDiv.classList.toggle('show');
+                        btn.innerText = detailDiv.classList.contains('show') ? '▲ 收起详情' : '▼ 查看详情';
+                    });
+                });
+            }
+
+            // 切换事件
+            document.querySelectorAll('.city-tab').forEach(tab => {
+                tab.addEventListener('click', async function() {
+                    document.querySelectorAll('.city-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCity = this.dataset.city;
+                    await initWeather();
+                    renderSchedule();
+                });
+            });
+
+            document.querySelectorAll('.plan-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPlan = this.dataset.plan;
+                    renderSchedule();
+                });
+            });
+
+            document.querySelectorAll('.version-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.version-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentVersion = this.dataset.version;
+                    renderSchedule();
+                });
+            });
+
+            // 初始化
+            (async function init() {
+                await initWeather();
+                renderSchedule();
+                const qrCanvas = document.getElementById('qrCanvas');
+                QRCode.toCanvas(window.location.href, { width: 110, margin: 1 }, function(err, canvas) {
+                    if (err) { qrCanvas.innerHTML = '<span style="color:red">二维码失败</span>'; return; }
+                    qrCanvas.innerHTML = '';
+                    canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.borderRadius = '8px';
+                    qrCanvas.appendChild(canvas);
+                });
+            })();
+        })();
+    </script>
+</body>
+</html>
